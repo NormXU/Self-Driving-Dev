@@ -1,0 +1,17 @@
+# Ignore folder
+data/
+
+# Ignore folder
+.ipynb_checkpoints/
+
+# Ignore folder
+Doc/
+
+# Ignore folder
+data/
+
+# Ignore folder
+model/
+
+# Ignore folder
+runs/
