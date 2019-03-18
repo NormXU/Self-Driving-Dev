@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 # only keep warnings and errors
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='0'
-
+import glob
 import numpy as np
 import argparse
 import re
@@ -27,9 +27,9 @@ from monodepth_dataloader import *
 from average_gradients import *
 
 parser = argparse.ArgumentParser(description='Monodepth TensorFlow implementation.')
-
+global model
 parser.add_argument('--encoder',          type=str,   help='type of encoder, vgg or resnet50', default='vgg')
-parser.add_argument('--image_path',       type=str,   help='path to the image', required=True)
+# parser.add_argumenimage_path',       type=str,   help='path to the image', required=True)
 parser.add_argument('--checkpoint_path',  type=str,   help='path to a specific checkpoint to load', required=True)
 parser.add_argument('--input_height',     type=int,   help='input height', default=256)
 parser.add_argument('--input_width',      type=int,   help='input width', default=512)
@@ -46,17 +46,19 @@ def post_process_disparity(disp):
     r_mask = np.fliplr(l_mask)
     return r_mask * l_disp + l_mask * r_disp + (1.0 - l_mask - r_mask) * m_disp
 
-def test_simple(params):
+def test_simple(params, image_path, Flag = True):
     """Test function."""
 
     left  = tf.placeholder(tf.float32, [2, args.input_height, args.input_width, 3])
-    model = MonodepthModel(params, "test", left, None)
-
-    input_image = scipy.misc.imread(args.image_path, mode="RGB")
+    input_image = scipy.misc.imread(image_path, mode="RGB")
     original_height, original_width, num_channels = input_image.shape
     input_image = scipy.misc.imresize(input_image, [args.input_height, args.input_width], interp='lanczos')
     input_image = input_image.astype(np.float32) / 255
     input_images = np.stack((input_image, np.fliplr(input_image)), 0)
+
+    if(Flag):
+        model = MonodepthModel(params, "test", left, None)
+
 
     # SESSION
     config = tf.ConfigProto(allow_soft_placement=True)
@@ -78,8 +80,8 @@ def test_simple(params):
     disp = sess.run(model.disp_left_est[0], feed_dict={left: input_images})
     disp_pp = post_process_disparity(disp.squeeze()).astype(np.float32)
 
-    output_directory = os.path.dirname(args.image_path)
-    output_name = os.path.splitext(os.path.basename(args.image_path))[0]
+    output_directory = os.path.dirname(image_path)
+    output_name = os.path.splitext(os.path.basename(image_path))[0]
 
     np.save(os.path.join(output_directory, "{}_disp.npy".format(output_name)), disp_pp)
     disp_to_img = scipy.misc.imresize(disp_pp.squeeze(), [original_height, original_width])
@@ -104,7 +106,78 @@ def main(_):
         lr_loss_weight=0,
         full_summary=False)
 
-    test_simple(params)
+    test_data_path = './data/crops'
+    imgs = glob.glob(os.path.join(test_data_path, "*.png"))
+
+    image_path = imgs[0]
+
+
+    left  = tf.placeholder(tf.float32, [2, args.input_height, args.input_width, 3])
+    input_image = scipy.misc.imread(image_path, mode="RGB")
+    original_height, original_width, num_channels = input_image.shape
+    input_image = scipy.misc.imresize(input_image, [args.input_height, args.input_width], interp='lanczos')
+    input_image = input_image.astype(np.float32) / 255
+    input_images = np.stack((input_image, np.fliplr(input_image)), 0)
+
+
+    model = MonodepthModel(params, "test", left, None)
+
+
+    # SESSION
+    config = tf.ConfigProto(allow_soft_placement=True)
+    sess = tf.Session(config=config)
+
+    # SAVER
+    train_saver = tf.train.Saver()
+
+    # INIT
+    sess.run(tf.global_variables_initializer())
+    sess.run(tf.local_variables_initializer())
+    coordinator = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=sess, coord=coordinator)
+
+    # RESTORE
+    restore_path = args.checkpoint_path.split(".")[0]
+    train_saver.restore(sess, restore_path)
+
+    disp = sess.run(model.disp_left_est[0], feed_dict={left: input_images})
+    disp_pp = post_process_disparity(disp.squeeze()).astype(np.float32)
+
+    output_directory = os.path.dirname(image_path)
+    output_name = os.path.splitext(os.path.basename(image_path))[0]
+
+    np.save(os.path.join(output_directory, "{}_disp.npy".format(output_name)), disp_pp)
+    disp_to_img = scipy.misc.imresize(disp_pp.squeeze(), [original_height, original_width])
+    plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+
+    print('done!')
+
+
+    for i in range(1,len(imgs)):
+        image_path1 = imgs[i]
+        input_image = scipy.misc.imread(image_path1, mode="RGB")
+        original_height, original_width, num_channels = input_image.shape
+        input_image = scipy.misc.imresize(input_image, [args.input_height, args.input_width], interp='lanczos')
+        input_image = input_image.astype(np.float32) / 255
+        input_images1 = np.stack((input_image, np.fliplr(input_image)), 0)
+
+        # RESTORE
+        restore_path = args.checkpoint_path.split(".")[0]
+        train_saver.restore(sess, restore_path)
+
+        disp = sess.run(model.disp_left_est[0], feed_dict={left: input_images1})
+        disp_pp = post_process_disparity(disp.squeeze()).astype(np.float32)
+
+        output_directory = os.path.dirname(image_path)
+        output_name = os.path.splitext(os.path.basename(image_path1))[0]
+
+        np.save(os.path.join(output_directory, "{}_disp.npy".format(output_name)), disp_pp)
+        disp_to_img = scipy.misc.imresize(disp_pp.squeeze(), [original_height, original_width])
+        plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+
+        print('done!')
+
+
 
 if __name__ == '__main__':
     tf.app.run()
