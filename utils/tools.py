@@ -1,6 +1,6 @@
 import tensorflow as tf
 import os.path
-import helper
+from utils.helper import *
 
 model_path='./model/model.ckpt'
 
@@ -103,4 +103,4 @@ def predict_images(test_data_path, print_speed=False, visualize = False):
         print("Restored the saved Model in file: %s" % model_path)
 
         # Predict the samples
-        helper.pred_samples(runs_dir, test_data_path, sess, image_shape, logits, keep_prob, input_image, print_speed,visualize)
+        pred_samples(runs_dir, test_data_path, sess, image_shape, logits, keep_prob, input_image, print_speed,visualize)
