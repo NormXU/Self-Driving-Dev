@@ -120,7 +120,7 @@ def test(sess, logits, keep_prob, image_pl, img, image_shape):
     mask = scipy.misc.toimage(mask, mode="RGBA")
     street_im = scipy.misc.toimage(image)
     street_im.paste(mask, box=None, mask=mask)
-    return street_im
+    return street_im, mask
 
 
 def pred_single(runs_dir, img, sess, image_shape, logits, keep_prob, input_image, print_speed=False, visualize = False):
@@ -134,7 +134,7 @@ def pred_single(runs_dir, img, sess, image_shape, logits, keep_prob, input_image
     print('Predicting images...')
     # start epoch training timer
 
-    image_outputs = test(
+    image_outputs, road_mask = test(
         sess, logits, keep_prob, input_image, img, image_shape)
 
     counter = 0
@@ -150,12 +150,7 @@ def pred_single(runs_dir, img, sess, image_shape, logits, keep_prob, input_image
         counter+=1
         print("Processing file: {0:05d},\tSpeed: {1:.2f} fps".format(counter, speed_))
 
-    return img
-
-
-
-
-
+    return img, road_mask
 
 
 def pred_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image, print_speed=False, visualize = False):
