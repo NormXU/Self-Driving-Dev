@@ -30,7 +30,8 @@ parser = argparse.ArgumentParser(description='Monodepth TensorFlow implementatio
 global model
 parser.add_argument('--encoder',          type=str,   help='type of encoder, vgg or resnet50', default='vgg')
 # parser.add_argumenimage_path',       type=str,   help='path to the image', required=True)
-parser.add_argument('--checkpoint_path',  type=str,   help='path to a specific checkpoint to load', required=True)
+# parser.add_argument('--checkpoint_path',  type=str,   help='path to a specific checkpoint to load', required=True)
+parser.add_argument('--checkpoint_path',  type=str,   help='path to a specific checkpoint to load', default='model/Depth/model_kitti')
 parser.add_argument('--input_height',     type=int,   help='input height', default=256)
 parser.add_argument('--input_width',      type=int,   help='input width', default=512)
 parser.add_argument('--path', type = str)
@@ -108,7 +109,8 @@ def main(_):
 
     np.save(os.path.join(output_directory, "{}_disp.npy".format(output_name)), disp_pp)
     disp_to_img = scipy.misc.imresize(disp_pp.squeeze(), [original_height, original_width])
-    plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+    # plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+    plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='gray')
 
     print('done!')
 
@@ -133,7 +135,8 @@ def main(_):
 
         # np.save(os.path.join(output_directory, "{}_disp.npy".format(output_name)), disp_pp)
         disp_to_img = scipy.misc.imresize(disp_pp.squeeze(), [original_height, original_width])
-        plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+        # plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='plasma')
+        plt.imsave(os.path.join(output_directory, "{}_disp.png".format(output_name)), disp_to_img, cmap='gray')
 
         print('done!')
 
