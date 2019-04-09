@@ -15,3 +15,9 @@ model/
 
 # Ignore folder
 runs/
+
+
+# Ignore folder
+yolo_util/crops2
+yolo_util/model_data
+yolo_util/font
