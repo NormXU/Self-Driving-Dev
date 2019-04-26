@@ -140,6 +140,7 @@ def pred_single(runs_dir, img, sess, image_shape, logits, keep_prob, input_image
     counter = 0
     
     image = scipy.misc.imresize(image_outputs, (720,1280))
+    #image = scipy.misc.imresize(image, (375,1242))
     # scipy.misc.imsave(os.path.join(output_dir, name), image)
     if visualize:
         img = np.uint8(image)
@@ -170,6 +171,7 @@ def pred_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input
     counter = 0
     for name, image, speed_ in image_outputs:
         image = scipy.misc.imresize(image, (720,1280))
+        #image = scipy.misc.imresize(image, (375,1242))
         scipy.misc.imsave(os.path.join(output_dir, name), image)
         if visualize:
             img = np.uint8(image)

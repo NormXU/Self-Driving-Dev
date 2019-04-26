@@ -8,6 +8,11 @@ from glob import glob
 import os
 import os.path
 import cv2
+import sys
+import argparse
+from yolo_util.yolo import YOLO, detect_video
+from PIL import Image
+from yolo_util.yolo_video import *
 # %%
 def DistanceCompute(depthPath, position, idx, threshold = 90, showFlag = True):
     depthOrigin = cv2.imread(depthPath,0)
@@ -21,11 +26,11 @@ def DistanceCompute(depthPath, position, idx, threshold = 90, showFlag = True):
         #print(depth_distance)
         
         
-        #depth = cv2.rectangle(depthOrigin,(top,left),(bottom,right),(255,255,0),3)
+        depth = cv2.rectangle(depthOrigin,(top,left),(bottom,right),(255,255,0),3)
          
         #plt.imsave(os.path.join('./data/crops2/depthCrop\', "{}_disp.png".format(i)), depth, cmap='gray')
         if showFlag and depth_distance > threshold:
-            plt.imshow(crop_Image,cmap='gray')
+            plt.imshow(depth,cmap='gray')
             plt.show()
     
     
@@ -42,9 +47,14 @@ img_path = 'yolo_util/crops2/original/'
 imgs = glob(os.path.join(img_path, "*.png"))
 results[0]
 #%%
-Depthdata_path = 'yolo_util/crops2/depth/'
+import pickle
+f = open('yolo_pos_crash.pckl', 'rb')
+obj = pickle.load(f)
+f.close()
+#%%
+Depthdata_path = 'yolo_util/crop3/original/'
 #Depthdata_path = 'yolo_util/crops2/original/'
 depthimgs = glob(os.path.join(Depthdata_path, "*.png"))
 for i in range(len(depthimgs)):
     depthPath = depthimgs[i]
-    DistanceCompute(depthPath, results, i, showFlag = True)
+    DistanceCompute(depthPath, obj, i, showFlag = True)
